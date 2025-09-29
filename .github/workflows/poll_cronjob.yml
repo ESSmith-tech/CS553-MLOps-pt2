@@ -1,0 +1,39 @@
+name: Poll SSH Connection
+
+on:
+  schedule:
+    # Runs every 3 minutes
+    - cron: '*/3 * * * *'
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  check-ssh:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Test SSH Connection
+        id: ssh_test
+        uses: appleboy/ssh-action@v0.1.5
+        continue-on-error: true
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            echo "SSH connection successful"
+            exit 0
+
+  alert-failure:
+    needs: check-ssh
+    if: needs.check-ssh.result == 'failure'
+    uses: ./.github/workflows/squawk_failure.yml
+    secrets: inherit
+
+  restore-system:
+    needs: alert-failure
+    if: needs.check-ssh.result == 'failure'
+    uses: ./.github/workflows/restore_from_scratch.yml
+    secrets: inherit
