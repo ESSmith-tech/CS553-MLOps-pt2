@@ -1,6 +1,6 @@
 #! /bin/bash
 
-PORT=21003
+PORT=21005
 MACHINE=paffenroth-23.dyn.wpi.edu
 
 # Change to the temporary directory
@@ -12,12 +12,13 @@ ssh-add mykey
 
 # check that the code in installed and start up the product
 COMMAND="ssh -i tmp/mykey -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE}"
-
-${COMMAND} "ls DSCS553_example"
-${COMMAND} "sudo apt install -qq -y python3-venv"
-${COMMAND} "cd DSCS553_example && python3 -m venv venv"
-${COMMAND} "cd DSCS553_example && source venv/bin/activate && pip install -r requirements.txt"
-${COMMAND} "nohup DSCS553_example/venv/bin/python3 DSCS553_example/app.py > log.txt 2>&1 &"
+${COMMAND} "ls CS553-MLOps-pt2"
+${COMMAND} "wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh"
+${COMMAND} "bash ~/miniconda.sh -b -p \$HOME/miniconda"
+${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && ~/miniconda/bin/conda init bash"
+${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && conda create -y -n ds553_env python=3.10"
+${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && pip install -r CS553-MLOps-pt2/src/requirements.txt"
+${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && nohup python CS553-MLOps-pt2/src/app.py > log.txt 2>&1 &"
 
 # nohup ./whatever > /dev/null 2>&1
 

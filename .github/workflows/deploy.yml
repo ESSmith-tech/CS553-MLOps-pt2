@@ -26,15 +26,15 @@ jobs:
             source cs2_venv/bin/activate
 
             # Step 3: Clone repository using a token stored in secrets
-            git clone https://github.com/rcpaffenroth/CS553_example
-            cd CS553_example
+            git clone https://github.com/ESSmith-tech/CS553-MLOps-pt2
+            cd CS553-MLOps-pt2
             git pull origin monitoring
 
             # Step 4: Install dependencies
             pip install -r requirements.txt
 
             # Step 5: Launch app.py in the background
-            nohup python3 app.py &
+            nohup python3 src/app.py &
 
             # Step 6: Install Prometheus
             wget https://github.com/prometheus/prometheus/releases/download/v2.54.1/prometheus-2.54.1.linux-amd64.tar.gz
