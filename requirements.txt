@@ -1,0 +1,4 @@
+# TODO: Add specific version numbers for each package to ensure compatibility
+transformers
+torch
+Pillow
