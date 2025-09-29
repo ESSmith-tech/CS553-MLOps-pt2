@@ -19,6 +19,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.5
         continue-on-error: true
         with:
+          port: ${{ secrets.VM_PORT }}
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
