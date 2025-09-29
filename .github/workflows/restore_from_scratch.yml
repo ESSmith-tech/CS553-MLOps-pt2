@@ -30,6 +30,7 @@ jobs:
       - name: Verify SSH connection
         uses: appleboy/ssh-action@v0.1.5
         with:
+          port: ${{ secrets.VM_PORT }}
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
