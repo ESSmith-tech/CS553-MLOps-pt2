@@ -6,18 +6,21 @@ on:
       DISCORD_WEBHOOK_URL:
         required: true
         type: string
+      VM_HOST:
+        required: true
+        type: string
   workflow_dispatch:
 
 jobs:
   notify:
     runs-on: ubuntu-latest
-
     steps:
       - name: Send SSH Failure Discord notification
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          VM="${{ inputs.VM_HOST }}"
+          WEBHOOK="${{ inputs.DISCORD_WEBHOOK_URL }}"
+
           curl -X POST -H "Content-Type: application/json" \
-          -d "{\"content\": \"I sense a great disturbance in the Lego Force...\n\n The machine has died as of ${TIMESTAMP}! SSH connection failed to ${{ secrets.VM_HOST }}.\n\n Initiating recovery...\"}" \
-          $DISCORD_WEBHOOK_URL
+          -d '{"content": "I sense a great disturbance in the Lego Force...\n\n The machine has died as of '"$TIMESTAMP"'! SSH connection failed to '"$VM"'.\n\n Initiating recovery..."}' \
+          "$WEBHOOK"
