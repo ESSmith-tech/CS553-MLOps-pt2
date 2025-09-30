@@ -76,6 +76,8 @@ jobs:
             else
               echo "stale=false" >> $GITHUB_OUTPUT
             fi
+          fi
+
 
       - name: Alert failure
         if: steps.compare.outputs.stale == 'true'
