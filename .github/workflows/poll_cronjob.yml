@@ -7,7 +7,20 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
+permissions:
+  actions: write
+  contents: read
+
 jobs:
+  debug-dispatch:
+    if: github.event_name == 'repository_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump event payload
+        run: |
+          echo "Full event context:"
+          echo '${{ toJson(github.event) }}'
+
   record-heartbeat:
     if: github.event_name == 'repository_dispatch'
     runs-on: ubuntu-latest
