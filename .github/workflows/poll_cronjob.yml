@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: "*/5 * * * *"
 
+permissions:
+  contents: write
+
 jobs:
   record-heartbeat:
     if: github.event_name == 'repository_dispatch' && github.event.action == 'heartbeat'
@@ -17,12 +20,23 @@ jobs:
 
       - name: Update heartbeat file
         run: |
-          echo "${{ github.event.client_payload.timestamp }}" > .last_heartbeat
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .last_heartbeat
-          git commit -m "Update heartbeat at ${{ github.event.client_payload.timestamp }}" || echo "No changes to commit"
-          git push
+          timestamp="${{ github.event.client_payload.timestamp }}"
+          hostname="${{ github.event.client_payload.hostname }}"
+          
+          # Initialize file if it doesn't exist
+          if [ ! -f .last_heartbeat ]; then
+            echo "$timestamp,$hostname" > .last_heartbeat
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .last_heartbeat
+            git commit -m "Initialize heartbeat at $timestamp from $hostname"
+            git push
+          else
+            # Update existing file
+            echo "$timestamp,$hostname" > .last_heartbeat
+            git add .last_heartbeat
+            git commit -m "Update heartbeat at $timestamp from $hostname" || echo "No changes to commit"
+            git push
 
   check-heartbeat:
     if: github.event_name == 'schedule'
@@ -37,37 +51,40 @@ jobs:
           if [ ! -f .last_heartbeat ]; then
             echo "No heartbeat file found"
             echo "hb_time=0" >> $GITHUB_OUTPUT
+            echo "hb_host=unknown" >> $GITHUB_OUTPUT
           else
-            hb_time=$(cat .last_heartbeat)
+            IFS=',' read -r hb_time hb_host < .last_heartbeat
             echo "hb_time=$hb_time" >> $GITHUB_OUTPUT
-          fi
+            echo "hb_host=$hb_host" >> $GITHUB_OUTPUT
 
       - name: Compare timestamps
         id: compare
         run: |
           now=$(date +%s)
           hb_time=${{ steps.read_hb.outputs.hb_time }}
+          hb_host=${{ steps.read_hb.outputs.hb_host }}
+          
           if [ "$hb_time" -eq 0 ]; then
             echo "No heartbeat ever recorded"
             echo "stale=true" >> $GITHUB_OUTPUT
           else
             diff=$((now - hb_time))
-            echo "Last heartbeat was $diff seconds ago"
+            echo "Last heartbeat from $hb_host was $diff seconds ago"
             if [ $diff -gt 600 ]; then
               echo "stale=true" >> $GITHUB_OUTPUT
             else
               echo "stale=false" >> $GITHUB_OUTPUT
             fi
-          fi
 
       - name: Alert failure
         if: steps.compare.outputs.stale == 'true'
-        run: |
-          echo "::error:: Heartbeat is stale! Last update more than 10 minutes ago."
-          # place your Slack/email/Discord alert here
+        uses: ./.github/workflows/squawk_failure.yml
+        with:
+          VM_HOST: ${{ steps.read_hb.outputs.hb_host }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
       - name: Restore system
         if: steps.compare.outputs.stale == 'true'
         run: |
-          echo "Running restore script..."
-          # put your restore logic here
+          echo "Running restore script for ${{ steps.read_hb.outputs.hb_host }}..."
+          # Insert restore-from-scratch logic here
