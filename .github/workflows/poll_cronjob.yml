@@ -78,9 +78,8 @@ jobs:
 
       - name: Alert failure
         if: steps.compare.outputs.stale == 'true'
-        uses: ./.github/workflows/squawk_failure.yml
-        with:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          echo "FAILURE!!"
 
       - name: Restore system
         if: steps.compare.outputs.stale == 'true'
