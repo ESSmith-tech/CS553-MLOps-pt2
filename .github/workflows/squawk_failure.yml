@@ -9,7 +9,6 @@ on:
       VM_HOST:
         required: true
         type: string
-  workflow_dispatch:
 
 jobs:
   notify:
