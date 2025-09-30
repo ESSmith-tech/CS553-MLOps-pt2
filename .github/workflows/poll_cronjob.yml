@@ -3,7 +3,6 @@ name: Heartbeat Monitor
 on:
   repository_dispatch:
     types: [heartbeat]
-  workflow_dispatch:
 
   schedule:
     - cron: "*/5 * * * *"  # workflow checks every 5 minutes
