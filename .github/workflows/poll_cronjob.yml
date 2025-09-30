@@ -30,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       is_alive: ${{ steps.check.outputs.is_alive }}
+      minutes_since: ${{ steps.check.outputs.minutes_since }}
     steps:
       - name: Check last heartbeat
         id: check
@@ -50,6 +51,8 @@ jobs:
               console.log(`Last heartbeat: ${lastHeartbeat.toISOString()}`);
               console.log(`Minutes since: ${minutesSince.toFixed(2)}`);
               
+              core.setOutput('minutes_since', minutesSince.toFixed(2));
+              
               if (minutesSince > 10) {
                 console.log('VM DOWN');
                 core.setOutput('is_alive', 'false');
@@ -60,6 +63,7 @@ jobs:
             } catch (error) {
               console.log('No heartbeat yet');
               core.setOutput('is_alive', 'unknown');
+              core.setOutput('minutes_since', 'N/A');
             }
 
   alert-failure:
@@ -67,6 +71,21 @@ jobs:
     if: needs.check-heartbeat.outputs.is_alive == 'false'
     uses: ./.github/workflows/squawk_failure.yml
     secrets: inherit
+
+  squawk-success:
+    needs: check-heartbeat
+    if: needs.check-heartbeat.outputs.is_alive == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Success Discord notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          MINUTES=${{ needs.check-heartbeat.outputs.minutes_since }}
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"content\": \"✅ The Force is strong with this one...\n\nVM is alive and well as of ${TIMESTAMP}!\nLast heartbeat: ${MINUTES} minutes ago.\"}" \
+          $DISCORD_WEBHOOK_URL
 
   restore-system:
     needs: [check-heartbeat, alert-failure]
