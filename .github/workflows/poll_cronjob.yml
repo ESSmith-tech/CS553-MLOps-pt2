@@ -17,7 +17,7 @@ jobs:
       - name: Test SSH Connection
         id: ssh_test
         uses: appleboy/ssh-action@v0.1.5
-        continue-on-error: true
+        continue-on-error: false
         with:
           port: ${{ secrets.VM_PORT }}
           host: ${{ secrets.VM_HOST }}
