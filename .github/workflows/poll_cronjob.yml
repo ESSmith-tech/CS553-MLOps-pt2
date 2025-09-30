@@ -1,83 +1,73 @@
-name: VM Heartbeat Monitor
+name: Heartbeat Monitor
 
 on:
   repository_dispatch:
-    types: [vm_heartbeat]
-  schedule:
-    - cron: '*/5 * * * *'
-  workflow_dispatch:
+    types: [heartbeat]
 
-permissions:
-  actions: write
-  contents: read
+  schedule:
+    - cron: "*/5 * * * *"
 
 jobs:
   record-heartbeat:
-    if: github.event_name == 'repository_dispatch'
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'heartbeat'
     runs-on: ubuntu-latest
     steps:
-      - name: Store heartbeat timestamp
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const now = new Date().toISOString();
-            await github.rest.actions.createOrUpdateRepoVariable({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'LAST_HEARTBEAT',
-              value: now
-            });
-            console.log(`Heartbeat received at ${now}`);
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Update heartbeat file
+        run: |
+          echo "${{ github.event.client_payload.timestamp }}" > .last_heartbeat
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .last_heartbeat
+          git commit -m "Update heartbeat at ${{ github.event.client_payload.timestamp }}" || echo "No changes to commit"
+          git push
 
   check-heartbeat:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
-    outputs:
-      is_alive: ${{ steps.check.outputs.is_alive }}
-      minutes_since: ${{ steps.check.outputs.minutes_since }}
     steps:
-      - name: Check last heartbeat
-        id: check
-        uses: actions/github-script@v7
-        with:
-          script: |
-            try {
-              const variable = await github.rest.actions.getRepoVariable({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                name: 'LAST_HEARTBEAT'
-              });
-              
-              const lastHeartbeat = new Date(variable.data.value);
-              const now = new Date();
-              const minutesSince = (now - lastHeartbeat) / 1000 / 60;
-              
-              console.log(`Last heartbeat: ${lastHeartbeat.toISOString()}`);
-              console.log(`Minutes since: ${minutesSince.toFixed(2)}`);
-              
-              core.setOutput('minutes_since', minutesSince.toFixed(2));
-              
-              if (minutesSince > 10) {
-                console.log('VM DOWN');
-                core.setOutput('is_alive', 'false');
-              } else {
-                console.log('VM OK');
-                core.setOutput('is_alive', 'true');
-              }
-            } catch (error) {
-              console.log('No heartbeat yet');
-              core.setOutput('is_alive', 'unknown');
-              core.setOutput('minutes_since', 'N/A');
-            }
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-  alert-failure:
-    needs: check-heartbeat
-    if: needs.check-heartbeat.outputs.is_alive == 'false'
-    uses: ./.github/workflows/squawk_failure.yml
-    secrets: inherit
+      - name: Read last heartbeat
+        id: read_hb
+        run: |
+          if [ ! -f .last_heartbeat ]; then
+            echo "No heartbeat file found"
+            echo "hb_time=0" >> $GITHUB_OUTPUT
+          else
+            hb_time=$(cat .last_heartbeat)
+            echo "hb_time=$hb_time" >> $GITHUB_OUTPUT
+          fi
 
-  restore-system:
-    needs: [check-heartbeat, alert-failure]
-    if: needs.check-heartbeat.outputs.is_alive == 'false'
-    uses: ./.github/workflows/restore_from_scratch.yml
-    secrets: inherit
+      - name: Compare timestamps
+        id: compare
+        run: |
+          now=$(date +%s)
+          hb_time=${{ steps.read_hb.outputs.hb_time }}
+          if [ "$hb_time" -eq 0 ]; then
+            echo "No heartbeat ever recorded"
+            echo "stale=true" >> $GITHUB_OUTPUT
+          else
+            diff=$((now - hb_time))
+            echo "Last heartbeat was $diff seconds ago"
+            if [ $diff -gt 600 ]; then
+              echo "stale=true" >> $GITHUB_OUTPUT
+            else
+              echo "stale=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Alert failure
+        if: steps.compare.outputs.stale == 'true'
+        run: |
+          echo "::error:: Heartbeat is stale! Last update more than 10 minutes ago."
+          # place your Slack/email/Discord alert here
+
+      - name: Restore system
+        if: steps.compare.outputs.stale == 'true'
+        run: |
+          echo "Running restore script..."
+          # put your restore logic here
