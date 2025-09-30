@@ -78,14 +78,16 @@ jobs:
             else
               echo "stale=false" >> $GITHUB_OUTPUT
             fi
+          fi
 
   alert_failure:
     needs: check_heartbeat
     if: needs.check_heartbeat.outputs.stale == 'true'
     uses: ESSmith-tech/CS553-MLOps-pt2/.github/workflows/squawk_failure.yml@main
     with:
-      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       VM_HOST: ${{ needs.check_heartbeat.outputs.hb_host }}
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
   restore_system:
     needs: [check_heartbeat, alert_failure]
