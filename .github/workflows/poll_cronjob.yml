@@ -24,6 +24,8 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
           passphrase: ${{ secrets.PK_PASSPHRASE }}
+          timeout: 10s
+          command_timeout: 20s
           script: |
             echo "SSH connection successful"
             exit 0
