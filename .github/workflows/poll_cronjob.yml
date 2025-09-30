@@ -1,43 +1,75 @@
-name: Poll SSH Connection
+name: VM Heartbeat Monitor
 
 on:
+  repository_dispatch:
+    types: [vm_heartbeat]
   schedule:
-    # Runs every 3 minutes
-    - cron: '*/3 * * * *'
-  workflow_dispatch: # Allows manual triggering
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 jobs:
-  check-ssh:
+  record-heartbeat:
+    if: github.event_name == 'repository_dispatch'
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Test SSH Connection
-        id: ssh_test
-        uses: appleboy/ssh-action@v0.1.5
-        continue-on-error: true
+      - name: Store heartbeat timestamp
+        uses: actions/github-script@v7
         with:
-          port: 21005
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.PRIVATE_KEY }}
-          passphrase: ${{ secrets.PK_PASSPHRASE }}
-          timeout: 10s
-          command_timeout: 15s
           script: |
-            echo "SSH connection successful"
-            exit 0
+            const now = new Date().toISOString();
+            await github.rest.actions.createOrUpdateRepoVariable({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'LAST_HEARTBEAT',
+              value: now
+            });
+            console.log(`Heartbeat received at ${now}`);
+
+  check-heartbeat:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    outputs:
+      is_alive: ${{ steps.check.outputs.is_alive }}
+    steps:
+      - name: Check last heartbeat
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const variable = await github.rest.actions.getRepoVariable({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'LAST_HEARTBEAT'
+              });
+              
+              const lastHeartbeat = new Date(variable.data.value);
+              const now = new Date();
+              const minutesSince = (now - lastHeartbeat) / 1000 / 60;
+              
+              console.log(`Last heartbeat: ${lastHeartbeat.toISOString()}`);
+              console.log(`Minutes since: ${minutesSince.toFixed(2)}`);
+              
+              if (minutesSince > 10) {
+                console.log('VM DOWN');
+                core.setOutput('is_alive', 'false');
+              } else {
+                console.log('VM OK');
+                core.setOutput('is_alive', 'true');
+              }
+            } catch (error) {
+              console.log('No heartbeat yet');
+              core.setOutput('is_alive', 'unknown');
+            }
 
   alert-failure:
-    needs: check-ssh
-    if: needs.check-ssh.result == 'failure'
+    needs: check-heartbeat
+    if: needs.check-heartbeat.outputs.is_alive == 'false'
     uses: ./.github/workflows/squawk_failure.yml
     secrets: inherit
 
   restore-system:
-    needs: alert-failure
-    if: needs.check-ssh.result == 'failure'
+    needs: [check-heartbeat, alert-failure]
+    if: needs.check-heartbeat.outputs.is_alive == 'false'
     uses: ./.github/workflows/restore_from_scratch.yml
     secrets: inherit
