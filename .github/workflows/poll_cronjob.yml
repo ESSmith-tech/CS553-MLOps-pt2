@@ -23,6 +23,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.PRIVATE_KEY }}
+          passphrase: ${{ secrets.PK_PASSPHRASE }}
           script: |
             echo "SSH connection successful"
             exit 0
