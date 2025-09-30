@@ -5,7 +5,7 @@ on:
     types: [heartbeat]
 
   schedule:
-    - cron: "*/3 * * * *"
+    - cron: "*/5 * * * *"  # workflow checks every 5 minutes
 
 permissions:
   contents: write
@@ -49,14 +49,12 @@ jobs:
         id: read_hb
         run: |
           if [ ! -f .last_heartbeat ]; then
-            echo "No heartbeat file found"
             echo "hb_time=0" >> $GITHUB_OUTPUT
             echo "hb_host=unknown" >> $GITHUB_OUTPUT
           else
             IFS=',' read -r hb_time hb_host < .last_heartbeat
             echo "hb_time=$hb_time" >> $GITHUB_OUTPUT
             echo "hb_host=$hb_host" >> $GITHUB_OUTPUT
-          fi
 
       - name: Compare timestamps
         id: compare
@@ -64,25 +62,26 @@ jobs:
           now=$(date +%s)
           hb_time=${{ steps.read_hb.outputs.hb_time }}
           hb_host=${{ steps.read_hb.outputs.hb_host }}
-          
+
           if [ "$hb_time" -eq 0 ]; then
-            echo "No heartbeat ever recorded"
             echo "stale=true" >> $GITHUB_OUTPUT
           else
             diff=$((now - hb_time))
             echo "Last heartbeat from $hb_host was $diff seconds ago"
-            if [ $diff -gt 600 ]; then
+            # ALERT_THRESHOLD: 180 seconds (3 minutes)
+            if [ $diff -gt 180 ]; then
               echo "stale=true" >> $GITHUB_OUTPUT
             else
               echo "stale=false" >> $GITHUB_OUTPUT
             fi
           fi
 
-
       - name: Alert failure
         if: steps.compare.outputs.stale == 'true'
-        run: |
-          echo "FAILURE!!"
+        uses: ./.github/workflows/squawk_failure.yml
+        with:
+          VM_HOST: ${{ steps.read_hb.outputs.hb_host }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
       - name: Restore system
         if: steps.compare.outputs.stale == 'true'
