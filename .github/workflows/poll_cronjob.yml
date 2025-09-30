@@ -8,40 +8,43 @@ on:
     - cron: "*/5 * * * *"  # workflow checks every 5 minutes
 
 permissions:
-  contents: write
+  contents: write  # needed to commit .last_heartbeat
 
 jobs:
-  record-heartbeat:
-    if: github.event_name == 'repository_dispatch' && github.event.action == 'heartbeat'
+  record_heartbeat:
+    if: github.event_name == 'repository_dispatch'
     runs-on: ubuntu-latest
+    outputs:
+      hb_time: ${{ steps.update_hb.outputs.hb_time }}
+      hb_host: ${{ steps.update_hb.outputs.hb_host }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Update heartbeat file
+        id: update_hb
         run: |
-          timestamp="${{ github.event.client_payload.timestamp }}"
-          hostname="${{ github.event.client_payload.hostname }}"
+          TIMESTAMP="${{ github.event.client_payload.timestamp }}"
+          HOSTNAME="${{ github.event.client_payload.hostname }}"
           
-          # Initialize file if it doesn't exist
-          if [ ! -f .last_heartbeat ]; then
-            echo "$timestamp,$hostname" > .last_heartbeat
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add .last_heartbeat
-            git commit -m "Initialize heartbeat at $timestamp from $hostname"
-            git push
-          else
-            # Update existing file
-            echo "$timestamp,$hostname" > .last_heartbeat
-            git add .last_heartbeat
-            git commit -m "Update heartbeat at $timestamp from $hostname" || echo "No changes to commit"
-            git push
-          fi
+          # Write heartbeat to .last_heartbeat
+          echo "$TIMESTAMP,$HOSTNAME" > .last_heartbeat
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .last_heartbeat
+          git commit -m "Update heartbeat at $TIMESTAMP from $HOSTNAME" || echo "No changes to commit"
+          git push
 
-  check-heartbeat:
-    if: github.event_name == 'schedule'
+          echo "hb_time=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "hb_host=$HOSTNAME" >> $GITHUB_OUTPUT
+
+  check_heartbeat:
+    needs: record_heartbeat
     runs-on: ubuntu-latest
+    outputs:
+      stale: ${{ steps.compare.outputs.stale }}
+      hb_host: ${{ needs.record_heartbeat.outputs.hb_host }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -70,23 +73,26 @@ jobs:
           else
             diff=$((now - hb_time))
             echo "Last heartbeat from $hb_host was $diff seconds ago"
-            # ALERT_THRESHOLD: 180 seconds (3 minutes)
-            if [ $diff -gt 180 ]; then
+            if [ $diff -gt 180 ]; then  # 3-minute threshold
               echo "stale=true" >> $GITHUB_OUTPUT
             else
               echo "stale=false" >> $GITHUB_OUTPUT
             fi
-          fi
 
-      - name: Alert failure
-        if: steps.compare.outputs.stale == 'true'
-        uses: ESSmith-tech/CS553-MLOps-pt2/.github/workflows/squawk_failure.yml@main
-        with:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          VM_NAME: ${{ steps.read_hb.outputs.hb_host }}
+  alert_failure:
+    needs: check_heartbeat
+    if: needs.check_heartbeat.outputs.stale == 'true'
+    uses: ESSmith-tech/CS553-MLOps-pt2/.github/workflows/squawk_failure.yml@main
+    with:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      VM_HOST: ${{ needs.check_heartbeat.outputs.hb_host }}
 
+  restore_system:
+    needs: [check_heartbeat, alert_failure]
+    if: needs.check_heartbeat.outputs.stale == 'true'
+    runs-on: ubuntu-latest
+    steps:
       - name: Restore system
-        if: steps.compare.outputs.stale == 'true'
         run: |
-          echo "Running restore script for ${{ steps.read_hb.outputs.hb_host }}..."
+          echo "Restoring system for host ${{ needs.check_heartbeat.outputs.hb_host }}..."
           # Insert restore-from-scratch logic here
