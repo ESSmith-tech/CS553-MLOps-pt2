@@ -2,6 +2,10 @@ name: Squawk SSH Failure
 
 on:
   workflow_call:
+    inputs:
+      DISCORD_WEBHOOK_URL:
+        required: true
+        type: string
   workflow_dispatch:
 
 jobs:
