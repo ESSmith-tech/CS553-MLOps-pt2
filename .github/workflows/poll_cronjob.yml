@@ -80,9 +80,8 @@ jobs:
 
       - name: Alert failure
         if: steps.compare.outputs.stale == 'true'
-        uses: ./.github/workflows/squawk_failure.yml
+        uses: ./.github/workflows/squawk_failure.yml@main
         with:
-          VM_HOST: ${{ steps.read_hb.outputs.hb_host }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
       - name: Restore system
