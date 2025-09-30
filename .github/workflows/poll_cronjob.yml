@@ -72,21 +72,6 @@ jobs:
     uses: ./.github/workflows/squawk_failure.yml
     secrets: inherit
 
-  squawk-success:
-    needs: check-heartbeat
-    if: needs.check-heartbeat.outputs.is_alive == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Success Discord notification
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          MINUTES=${{ needs.check-heartbeat.outputs.minutes_since }}
-          curl -X POST -H "Content-Type: application/json" \
-          -d "{\"content\": \"✅ The Force is strong with this one...\n\nVM is alive and well as of ${TIMESTAMP}!\nLast heartbeat: ${MINUTES} minutes ago.\"}" \
-          $DISCORD_WEBHOOK_URL
-
   restore-system:
     needs: [check-heartbeat, alert-failure]
     if: needs.check-heartbeat.outputs.is_alive == 'false'
