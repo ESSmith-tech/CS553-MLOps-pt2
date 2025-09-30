@@ -5,7 +5,7 @@ on:
     types: [heartbeat]
 
   schedule:
-    - cron: "*/5 * * * *"  # workflow checks every 5 minutes
+    - cron: "*/15 * * * *"  # workflow checks every 5 minutes
 
 permissions:
   contents: write  # needed to commit .last_heartbeat
