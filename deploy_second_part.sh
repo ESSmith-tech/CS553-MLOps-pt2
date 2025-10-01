@@ -1,6 +1,6 @@
 #! /bin/bash
 
-PORT=21005
+PORT=22005
 MACHINE=paffenroth-23.dyn.wpi.edu
 
 # Change to the temporary directory
