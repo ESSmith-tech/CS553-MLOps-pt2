@@ -1,12 +1,11 @@
 name: Heartbeat Monitor
 
 on:
-  #repository_dispatch:
-    #types: [heartbeat]
-  workflow_dispatch:
-
-  #schedule:
-    #- cron: "*/15 * * * *"  # workflow checks every 5 minutes
+  repository_dispatch:
+    types: [heartbeat]
+  
+  schedule:
+    - cron: "*/5 * * * *"  # workflow checks every 5 minutes
 
 permissions:
   contents: write  # needed to commit .last_heartbeat
@@ -39,6 +38,15 @@ jobs:
 
           echo "hb_time=$TIMESTAMP" >> $GITHUB_OUTPUT
           echo "hb_host=$HOSTNAME" >> $GITHUB_OUTPUT
+
+      - name: Send alive notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"content\": \"VM is still alive as of: ${TIMESTAMP}\"}" \
+          $DISCORD_WEBHOOK_URL
 
   check_heartbeat:
     needs: record_heartbeat
@@ -84,18 +92,13 @@ jobs:
   alert_failure:
     needs: check_heartbeat
     if: needs.check_heartbeat.outputs.stale == 'true'
-    uses: ESSmith-tech/CS553-MLOps-pt2/.github/workflows/squawk_failure.yml@main
-    with:
-      VM_HOST: ${{ needs.check_heartbeat.outputs.hb_host }}
-    secrets:
-      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-
-  restore_system:
-    needs: [check_heartbeat, alert_failure]
-    if: needs.check_heartbeat.outputs.stale == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Restore system
+      - name: Send SSH Failure Discord notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          echo "Restoring system for host ${{ needs.check_heartbeat.outputs.hb_host }}..."
-          # Insert restore-from-scratch logic here
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"content\": \"I sense a great disturbance in the Lego Force...\n\n The machine has died as of ${TIMESTAMP}! SSH connection failed to ${{ needs.check_heartbeat.outputs.hb_host }}.\n\n Initiating recovery...\"}" \
+          $DISCORD_WEBHOOK_URL
