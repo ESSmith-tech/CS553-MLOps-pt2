@@ -1,11 +1,12 @@
 name: Heartbeat Monitor
 
 on:
-  repository_dispatch:
-    types: [heartbeat]
+  #repository_dispatch:
+    #types: [heartbeat]
+  workflow_dispatch:
 
-  schedule:
-    - cron: "*/15 * * * *"  # workflow checks every 5 minutes
+  #schedule:
+    #- cron: "*/15 * * * *"  # workflow checks every 5 minutes
 
 permissions:
   contents: write  # needed to commit .last_heartbeat
