@@ -25,7 +25,14 @@ chmod 600 student-admin_key*
 
 # Create a unique key
 rm -f mykey*
-ssh-keygen -f mykey -t ed25519 -N "careful"
+PASSAGE="careful"
+#I have 2 ideas for sicurity here:
+# 1. Store the passage in a file that is not in git
+# PASSAGE=$(cat ../passage.txt)
+# 2. Prompt the user for the passage
+# read -sp "answer my riddles three: " PASSAGE
+# echo
+ssh-keygen -f mykey -t ed25519 -N "${PASSAGE}"
 
 # Insert the key into the authorized_keys file on the server
 # One > creates
