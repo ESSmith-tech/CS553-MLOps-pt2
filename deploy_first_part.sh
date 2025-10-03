@@ -25,11 +25,10 @@ cd tmp
 chmod 600 student-admin_key*
 
 # Create a unique key
-rm -f mykey*
-
-# FIX NEEDED FIX NEEDED FIX NEEDED	
-# Figure out how to store password elsewhere
-ssh-keygen -f mykey -t ed25519 -N "careful"
+rm -f mykey
+read -sp "answer my riddles three: " PASSAGE
+echo
+ssh-keygen -f mykey -t ed25519 -N "${PASSAGE}"
 
 # Insert the key into the authorized_keys file on the server
 # One > creates
