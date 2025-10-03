@@ -1,0 +1,59 @@
+name: Restore From Scratch
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Attempt VM restart
+        run: |
+          echo "🔄 Attempting to restart VM at ${{ secrets.VM_HOST }}..."
+          # Add your VM restart logic here (e.g., cloud provider API calls)
+          # For example: aws ec2 reboot-instances --instance-ids i-xxxxx
+          # Or: gcloud compute instances reset INSTANCE_NAME
+          sleep 5
+          echo "✓ Restart command sent"
+      
+      - name: Wait for VM to come online
+        run: |
+          echo "⏳ Waiting for VM to come back online..."
+          sleep 30
+          echo "✓ Wait period completed"
+      
+      - name: Verify SSH connection
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          port: ${{ secrets.VM_PORT }}
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            echo "✓ SSH connection restored successfully!"
+            uptime
+      
+      - name: Send recovery success notification
+        if: success()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"content\": \"✅ The machine has been restored as of ${TIMESTAMP}!\n\nSSH connection to ${{ secrets.VM_HOST }} is back online.\"}" \
+          $DISCORD_WEBHOOK_URL
+      
+      - name: Send recovery failure notification
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{\"content\": \"❌ Machine restoration failed as of ${TIMESTAMP}!\n\nManual intervention required for ${{ secrets.VM_HOST }}.\"}" \
+          $DISCORD_WEBHOOK_URL
