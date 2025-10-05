@@ -70,10 +70,6 @@ ssh -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE} "cat ~/.ssh/
 echo "Cloning repository from main branch..."
 git clone --branch main --single-branch "$REPO_URL" "$REPO_DIR"
 
-if [ -f "requirements.txt" ]; then
-    echo "Installing dependencies..."
-    pip install -r requirements.txt
-fi
 
 # Copy the files to the server
 #scp -P ${PORT} -o StrictHostKeyChecking=no -r DSCS553_example student-admin@${MACHINE}:~/
