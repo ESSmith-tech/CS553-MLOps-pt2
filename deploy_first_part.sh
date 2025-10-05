@@ -4,6 +4,11 @@ PORT=22005
 MACHINE=paffenroth-23.dyn.wpi.edu
 STUDENT_ADMIN_KEY_PATH=$HOME/CS553
 COMMAND="ssh -i ${STUDENT_ADMIN_KEY_PATH}/student-admin_key -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE}"
+REPO_URL="https://github.com/ESSmith-tech/CS553-MLOps-pt2.git"
+REPO_DIR="CS553-MLOps-pt2"
+
+# Clean up from previous runs
+ssh-keygen -f ~/.ssh/known_hosts -R "[paffenroth-23.dyn.wpi.edu]:22005"
 
 # Clean up from previous runs
 ssh-keygen -f ~/.ssh/known_hosts -R "[paffenroth-23.dyn.wpi.edu]:21005"
