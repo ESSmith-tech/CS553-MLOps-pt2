@@ -67,9 +67,13 @@ echo "checking that the authorized_keys file is correct"
 ssh -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE} "cat ~/.ssh/authorized_keys"
 
 # clone the repo
-# UPDATE NEEDED UPDATE NEEDED UPDATED NEEDED
-# Put in our own git repo
-#git clone https://github.com/rcpaffenroth/DSCS553_example
+echo "Cloning repository from main branch..."
+git clone --branch main --single-branch "$REPO_URL" "$REPO_DIR"
+
+if [ -f "requirements.txt" ]; then
+    echo "Installing dependencies..."
+    pip install -r requirements.txt
+fi
 
 # Copy the files to the server
 #scp -P ${PORT} -o StrictHostKeyChecking=no -r DSCS553_example student-admin@${MACHINE}:~/
