@@ -5,7 +5,7 @@ from PIL import Image
 class UIImageScraper:
     """A class for downloading and processing images based on configuration file."""
     
-    def __init__(self, config_path="cm/ui_scraper_config.json", output_dir=None):
+    def __init__(self, config_path="../cm/ui_scraper_config.json", output_dir=None):
         """
         Initialize the UIImageScraper with configuration.
         
