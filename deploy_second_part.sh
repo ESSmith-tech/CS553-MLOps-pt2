@@ -22,6 +22,9 @@ ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && conda create -y -n ds553_
 ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && pip install -r CS553-MLOps-pt2/requirements.txt"
 ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && nohup python CS553-MLOps-pt2/src/app.py > log.txt 2>&1 &"
 
+echo "Logging into HuggingFace..."
+huggingface-cli login --token $HF_TOKEN
+
 # nohup ./whatever > /dev/null 2>&1
 
 # debugging ideas
