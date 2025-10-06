@@ -28,7 +28,8 @@ def test_api_requires_token(chat_handler):
         use_local_model=False
     )
     first = next(gen)
-    assert "log in" in first.lower() or "required" in first.lower()
+    # New behavior: app instructs to set HF_TOKEN env var; check for 'token' or 'hf_token' mention
+    assert "token" in first.lower() or "hf_token" in first.lower() or "hugging" in first.lower()
 
 def test_api_with_token(chat_handler):
     hf_token = os.environ.get("HF_TOKEN")

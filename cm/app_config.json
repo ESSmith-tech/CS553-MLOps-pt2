@@ -36,6 +36,6 @@
     "loading_message": "📄 Local model is still loading in the background. Your message has been queued and will be processed once the model is ready...",
     "model_ready": "✅ Model loaded! Processing your message...",
     "model_load_failed": "❌ Failed to load local model. Please try using the API mode instead.",
-    "login_required": "⚠️ Please log in with your Hugging Face account first."
+     "login_required": "⚠️ No Hugging Face API token found. Please set the HF_TOKEN environment variable before starting the app."
   }
 }

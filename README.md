@@ -7,9 +7,6 @@ sdk: gradio
 sdk_version: 5.42.0
 app_file: src/app.py
 pinned: false
-hf_oauth: true
-hf_oauth_scopes:
-- inference-api
 ---
 
 When a developer pushes something to GitHub, it is set up to run tests and sync with Huggingface. If a developer attempts to push a change to GitHub that fails the test or errors while compiling, it will abort the push to HuggingFace, so any poor code that would impact the product doesn’t get to the clients. A message will be sent to our team's Discord server telling us how many of the tests failed and which tests failed.
@@ -27,3 +24,14 @@ The Src folder conation files handling the user interface and logic for talking 
 The tests folder contains all test files.
 
 Push!!! (#4)
+
+How to set HF_TOKEN (PowerShell):
+
+1. Obtain a Hugging Face API token from your Hugging Face account settings.
+2. In PowerShell, set the environment variable for the current session:
+
+```powershell
+$env:HF_TOKEN = "your_token_here"
+```
+
+To make it persistent system-wide, use the Windows Environment Variables UI or powershell commands to set machine/user environment variables.

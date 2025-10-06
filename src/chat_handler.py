@@ -140,13 +140,22 @@ class ChatHandler:
                          hf_token: Optional[gr.OAuthToken]) -> Generator[str, None, None]:
         """Handle API model response generation"""
         print("[MODE] api")
-        if hf_token is None or not getattr(hf_token, "token", None):
+        # Prefer token from Gradio login if provided, otherwise use environment variable
+        token = None
+        if hf_token and getattr(hf_token, "token", None):
+            token = hf_token.token
+        else:
+            token = os.environ.get("HF_TOKEN")
+
+        if not token:
+            # No token available; instruct user/admin to set HF_TOKEN
             yield self.config["messages"]["login_required"]
             return
+
         try:
             yield from self.model_manager.api_model.generate(
                 messages,
-                hf_token=hf_token.token,
+                hf_token=token,
                 max_tokens=max_tokens,
                 temperature=temperature,
                 top_p=top_p

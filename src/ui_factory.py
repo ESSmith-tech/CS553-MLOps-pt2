@@ -90,10 +90,13 @@ class UIFactory:
     def create_main_interface(chatbot: gr.ChatInterface, config: Dict[str, Any], 
                             css: str) -> gr.Blocks:
         """Create the main application interface"""
-
         with gr.Blocks(css=css, theme=UIFactory.theme) as demo:
+            # We no longer require interactive login. The app reads HF token from HF_TOKEN environment variable.
             with gr.Row():
-                gr.LoginButton()
+                gr.Markdown("""
+                **Note:** This app uses the HF_TOKEN environment variable for Hugging Face API access.
+                Ensure the token is set before starting the application.
+                """)
 
             chatbot.render()
         return demo
