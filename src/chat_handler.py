@@ -2,10 +2,8 @@
 
 from typing import List, Dict, Generator, Optional, Any
 import gradio as gr
-from src.model_manager import ModelManager
-import time
-import os
-import datetime
+from model_manager import ModelManager
+import time, os, datetime
 
 # Completly generated using GitHub Copilot
 def timing_decorator(func):
