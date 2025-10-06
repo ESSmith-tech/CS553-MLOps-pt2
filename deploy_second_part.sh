@@ -11,7 +11,7 @@ eval "$(ssh-agent -s)"
 ssh-add mykey
 
 # check that the code in installed and start up the product
-COMMAND="ssh -i tmp/mykey -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE}"
+COMMAND="ssh -i mykey -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE}"
 ${COMMAND} "ls CS553-MLOps-pt2"
 ${COMMAND} "wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh"
 ${COMMAND} "bash ~/miniconda.sh -b -p \$HOME/miniconda"
