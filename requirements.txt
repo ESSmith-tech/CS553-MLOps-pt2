@@ -3,5 +3,6 @@ transformers
 torch
 Pillow
 gradio
+gradio[oauth]
 huggingface-hub
 oauthlib
