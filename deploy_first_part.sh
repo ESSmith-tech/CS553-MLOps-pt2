@@ -4,9 +4,22 @@ PORT=22005
 MACHINE=paffenroth-23.dyn.wpi.edu
 STUDENT_ADMIN_KEY_PATH=$HOME/CS553
 COMMAND="ssh -i ${STUDENT_ADMIN_KEY_PATH}/student-admin_key -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE}"
+REPO_URL="https://github.com/ESSmith-tech/CS553-MLOps-pt2.git"
+REPO_DIR="CS553-MLOps-pt2"
+
+${COMMAND} "echo 'testing for student-admin_key'"
+
+if [ $? -ne 0 ]; then
+	echo "student admin key not on virtual machine, cancelling deployment"
+	exit 1
+fi
+
 
 # Clean up from previous runs
 ssh-keygen -f ~/.ssh/known_hosts -R "[paffenroth-23.dyn.wpi.edu]:22005"
+
+# Clean up from previous runs
+ssh-keygen -f ~/.ssh/known_hosts -R "[paffenroth-23.dyn.wpi.edu]:21005"
 rm -rf tmp
 
 # Create a temporary directory
@@ -62,9 +75,9 @@ echo "checking that the authorized_keys file is correct"
 ssh -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE} "cat ~/.ssh/authorized_keys"
 
 # clone the repo
-# UPDATE NEEDED UPDATE NEEDED UPDATED NEEDED
-# Put in our own git repo
-#git clone https://github.com/rcpaffenroth/DSCS553_example
+echo "Cloning repository from main branch..."
+git clone --branch main --single-branch "$REPO_URL" "$REPO_DIR"
+
 
 # Copy the files to the server
 #scp -P ${PORT} -o StrictHostKeyChecking=no -r DSCS553_example student-admin@${MACHINE}:~/
