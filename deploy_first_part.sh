@@ -7,11 +7,12 @@ COMMAND="ssh -i ${STUDENT_ADMIN_KEY_PATH}/student-admin_key -p ${PORT} -o Strict
 REPO_URL="https://github.com/ESSmith-tech/CS553-MLOps-pt2.git"
 REPO_DIR="CS553-MLOps-pt2"
 
+
+ssh
+
 # Clean up from previous runs
 ssh-keygen -f ~/.ssh/known_hosts -R "[paffenroth-23.dyn.wpi.edu]:22005"
 
-# Clean up from previous runs
-ssh-keygen -f ~/.ssh/known_hosts -R "[paffenroth-23.dyn.wpi.edu]:21005"
 rm -rf tmp
 
 # Create a temporary directory
@@ -67,8 +68,9 @@ echo "checking that the authorized_keys file is correct"
 ssh -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE} "cat ~/.ssh/authorized_keys"
 
 # clone the repo
-echo "Cloning repository from main branch..."
-git clone --branch main --single-branch "$REPO_URL" "$REPO_DIR"
+echo "Cloning repository from SpDev branch..."
+git clone --branch SpDev --single-branch "$REPO_URL" "$REPO_DIR"
+
 
 
 # Copy the files to the server
