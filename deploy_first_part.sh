@@ -1,11 +1,25 @@
 #! /bin/bash
 
-PORT=21005
+PORT=22005
 MACHINE=paffenroth-23.dyn.wpi.edu
-STUDENT_ADMIN_KEY_PATH=$HOME/projects/1_classes/DS553_private/scripts/CS2
+STUDENT_ADMIN_KEY_PATH=$HOME/CS553
+COMMAND="ssh -i ${STUDENT_ADMIN_KEY_PATH}/student-admin_key -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE}"
+REPO_URL="https://github.com/ESSmith-tech/CS553-MLOps-pt2.git"
+REPO_DIR="CS553-MLOps-pt2"
+
+${COMMAND} "echo 'testing for student-admin_key'"
+
+if [ $? -ne 0 ]; then
+	echo "student admin key not on virtual machine, cancelling deployment"
+	exit 1
+fi
+
 
 # Clean up from previous runs
-ssh-keygen -f "/home/rcpaffenroth/.ssh/known_hosts" -R "[paffenroth-23.dyn.wpi.edu]:21005"
+ssh-keygen -f ~/.ssh/known_hosts -R "[paffenroth-23.dyn.wpi.edu]:22005"
+
+# Clean up from previous runs
+ssh-keygen -f ~/.ssh/known_hosts -R "[paffenroth-23.dyn.wpi.edu]:21005"
 rm -rf tmp
 
 # Create a temporary directory
@@ -24,8 +38,10 @@ cd tmp
 chmod 600 student-admin_key*
 
 # Create a unique key
-rm -f mykey*
-ssh-keygen -f mykey -t ed25519 -N "careful"
+rm -f mykey
+read -sp "answer my riddles three: " PASSAGE
+echo
+ssh-keygen -f mykey -t ed25519 -N "${PASSAGE}"
 
 # Insert the key into the authorized_keys file on the server
 # One > creates
@@ -41,7 +57,14 @@ ls -l authorized_keys
 cat authorized_keys
 
 # Copy the authorized_keys file to the server
-scp -i student-admin_key -P ${PORT} -o StrictHostKeyChecking=no authorized_keys student-admin@${MACHINE}:~/.ssh/
+# FIX NEEDED FIX NEEDED FIX NEEDED
+# if line fails then it removes access to the machine, find way to fix
+#scp -i student-admin_key -P ${PORT} -o StrictHostKeyChecking=no authorized_keys student-admin@${MACHINE}:~/.ssh/
+
+OLD_KEY=$(cat student-admin_key.pub)
+NEW_KEY=$(cat mykey.pub)
+
+${COMMAND} "sed -i 's|${OLD_KEY}|${NEW_KEY}|g' .ssh/authorized_keys"
 
 # Add the key to the ssh-agent
 eval "$(ssh-agent -s)"
@@ -52,10 +75,12 @@ echo "checking that the authorized_keys file is correct"
 ssh -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE} "cat ~/.ssh/authorized_keys"
 
 # clone the repo
-git clone https://github.com/ESSmith-tech/CS553-MLOps-pt2
+echo "Cloning repository from main branch..."
+git clone --branch main --single-branch "$REPO_URL" "$REPO_DIR"
+
 
 # Copy the files to the server
-scp -P ${PORT} -o StrictHostKeyChecking=no -r CS553-MLOps-pt2 student-admin@${MACHINE}:~/
+#scp -P ${PORT} -o StrictHostKeyChecking=no -r DSCS553_example student-admin@${MACHINE}:~/
 
 # check that the code in installed and start up the product
 # COMMAND="ssh -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE}"
