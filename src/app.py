@@ -3,16 +3,16 @@ import os, sys
 
 # Add the src directory to Python path to ensure imports work
 # This handles cases where app.py might be moved during deployment by Hugging Face
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.join(current_dir) 
-if src_dir not in sys.path:
-    sys.path.insert(0, src_dir)
+# current_dir = os.path.dirname(os.path.abspath(__file__))
+# src_dir = os.path.join(current_dir) 
+# if src_dir not in sys.path:
+#     sys.path.insert(0, src_dir)
 
 
-from src.config_manager import ConfigManager
-from src.model_manager import ModelManager
-from src.chat_handler import ChatHandler
-from src.ui_factory import UIFactory
+from config_manager import ConfigManager
+from model_manager import ModelManager
+from chat_handler import ChatHandler
+from ui_factory import UIFactory
 
 class ChatApp:
     """Main application class"""
