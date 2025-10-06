@@ -3,12 +3,17 @@
 PORT=22005
 MACHINE=paffenroth-23.dyn.wpi.edu
 
+echo "Logging into HuggingFace..."
+huggingface-cli login --token $HF_TOKEN
+
 # Change to the temporary directory
 cd tmp
 
 # Add the key to the ssh-agent
 eval "$(ssh-agent -s)"
 ssh-add mykey
+
+
 
 # check that the code in installed and start up the product
 COMMAND="ssh -i mykey -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE}"
