@@ -2,8 +2,8 @@ import gradio as gr
 from typing import Dict, Any
 import os
 
-from src.chat_handler import ChatHandler
-from src.ui_image_scraper import UIImageScraper
+from chat_handler import ChatHandler
+from ui_image_scraper import UIImageScraper
 
 class UIFactory:
     theme = gr.themes.Default()
