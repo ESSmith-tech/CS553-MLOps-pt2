@@ -1,5 +1,7 @@
 # TODO: Add specific version numbers for each package to ensure compatibility
-transformers==4.36.2
-torch==2.1.2
-Pillow==10.2.0
-gradio==4.12.0
+transformers
+torch
+Pillow
+gradio
+huggingface-hub
+oauthlib
