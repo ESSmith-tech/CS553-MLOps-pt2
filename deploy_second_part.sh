@@ -2,6 +2,7 @@
 
 PORT=22005
 MACHINE=paffenroth-23.dyn.wpi.edu
+HF_TOKEN=$(cat HF_TOKEN.txt)
 
 # Change to the temporary directory
 cd tmp
@@ -20,15 +21,6 @@ ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && conda tos accept --overri
 ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r"
 ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && conda create -y -n ds553_env python=3.10"
 ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && pip install -r CS553-MLOps-pt2/requirements.txt"
-${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && nohup python CS553-MLOps-pt2/src/app.py > log.txt 2>&1 &"
-
 echo "Logging into HuggingFace..."
-huggingface-cli login --token $HF_TOKEN
-
-# nohup ./whatever > /dev/null 2>&1
-
-# debugging ideas
-# sudo apt-get install gh
-# gh auth login
-# requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta/v1/chat/completions
-# log.txt
+${COMMAND} "huggingface-cli login --token ${HF_TOKEN} --add-to-git-credential"
+${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && cd CS553-MLOps-pt2/src && nohup python app.py > log.txt 2>&1 &"
