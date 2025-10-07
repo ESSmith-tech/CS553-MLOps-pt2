@@ -77,24 +77,3 @@ ssh -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE} "cat ~/.ssh/
 # clone the repo
 echo "Cloning repository from main branch..."
 git clone --branch main --single-branch "$REPO_URL" "$REPO_DIR"
-
-
-# Copy the files to the server
-#scp -P ${PORT} -o StrictHostKeyChecking=no -r DSCS553_example student-admin@${MACHINE}:~/
-
-# check that the code in installed and start up the product
-# COMMAND="ssh -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE}"
-
-# ${COMMAND} "ls CS553_example"
-# ${COMMAND} "sudo apt install -qq -y python3-venv"
-# ${COMMAND} "cd CS553_example && python3 -m venv venv"
-# ${COMMAND} "cd CS553_example && source venv/bin/activate && pip install -r requirements.txt"
-# ${COMMAND} "nohup CS553_example/venv/bin/python3 CS553_example/app.py > log.txt 2>&1 &"
-
-# nohup ./whatever > /dev/null 2>&1
-
-# debugging ideas
-# sudo apt-get install gh
-# gh auth login
-# requests.exceptions.HTTPError: 429 Client Error: Too Many Requests for url: https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta/v1/chat/completions
-# log.txt
