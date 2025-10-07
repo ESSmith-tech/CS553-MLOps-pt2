@@ -76,4 +76,4 @@ ssh -p ${PORT} -o StrictHostKeyChecking=no student-admin@${MACHINE} "cat ~/.ssh/
 
 # clone the repo
 echo "Cloning repository from main branch..."
-git clone --branch main --single-branch "$REPO_URL" "$REPO_DIR"
+${COMMAND} "git clone --branch main --single-branch '$REPO_URL' '$REPO_DIR'"
