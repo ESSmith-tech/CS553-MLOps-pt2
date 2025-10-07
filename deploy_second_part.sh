@@ -20,8 +20,9 @@ ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && ~/miniconda/bin/conda ini
 ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main"
 ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r"
 ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && conda create -y -n ds553_env python=3.10"
-${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && pip install -r CS553-MLOps-pt2/requirements.txt"
+${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && pip install -r CS553-MLOps-pt2/requirements.txt && hf auth login --token ${HF_TOKEN} --add-to-git-credential" 
 echo "Logging into HuggingFace..."
 #${COMMAND} "huggingface-cli login --token ${HF_TOKEN} --add-to-git-credential"
-${COMMAND} "hf auth login --token ${HF_TOKEN} --add-to-git-credential"
+#${COMMAND} "hf auth login --token ${HF_TOKEN} --add-to-git-credential"
 ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && cd CS553-MLOps-pt2/src && nohup python app.py > log.txt 2>&1 &"
+
