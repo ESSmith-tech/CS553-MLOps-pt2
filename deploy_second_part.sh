@@ -24,6 +24,6 @@ ${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/ac
 echo "Logging into HuggingFace..."
 #${COMMAND} "huggingface-cli login --token ${HF_TOKEN} --add-to-git-credential"
 #${COMMAND} "hf auth login --token ${HF_TOKEN} --add-to-git-credential"
-${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && source ~/miniconda/bin/activate ds553_env && cd CS553-MLOps-pt2/src && nohup python app.py > log.txt 2>&1 &"
+${COMMAND} "export PATH=\$HOME/miniconda/bin:\$PATH && export HF_TOKEN=${HF_TOKEN} && source ~/miniconda/bin/activate ds553_env && cd CS553-MLOps-pt2/src && nohup python app.py > log.txt 2>&1 &"
 echo "Done"
 
